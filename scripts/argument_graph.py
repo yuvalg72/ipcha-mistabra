@@ -225,6 +225,44 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
                       nodes[s]["kind"] == "evidence" and
                       nodes[s]["verification"] == "verified" and labels[s] == "IN")
 
+    # Grounded evidentiary justification is different from grounded graph IN.
+    # A structural win is evidence-supported when AT LEAST ONE defender has
+    # declared direct evidence AND its own attacked premises can be defended
+    # through similarly supported, well-founded chains.
+    evidenced_in: set[str] = set()
+    while True:
+        new_evidenced = {
+            node_id for node_id in accepted - evidenced_in
+            if nodes[node_id]["kind"] in ARGUMENT_KINDS
+            and verified_sources(node_id)
+            and all(any(defender in evidenced_in for defender in attackers[attacker])
+                    for attacker in attackers[node_id])
+        }
+        if not new_evidenced:
+            break
+        evidenced_in.update(new_evidenced)
+
+    def missing_defender_for(defeated_node: str, visited: frozenset[str]) -> str | None:
+        """Find one missing evidence link on a necessary counterattack path."""
+        defenders = sorted(d for d in attackers[defeated_node] if labels[d] == "IN")
+        if any(d in evidenced_in for d in defenders):
+            return None  # Supported alternative wins; ignore redundant weak paths.
+        for defender in defenders:
+            if not verified_sources(defender):
+                return defender
+        for defender in defenders:
+            if defender in visited:
+                continue
+            for counterattack in sorted(attackers[defender]):
+                if labels[counterattack] == "OUT":
+                    missing = missing_defender_for(
+                        counterattack, visited | {defender}
+                    )
+                    if missing is not None:
+                        return missing
+        # Defensive fallback: never silently certify a structurally IN path.
+        return defenders[0] if defenders else None
+
     claim_info = []
     defense_evidence_gaps: list[dict[str, str]] = []
     for node_id, node in sorted(nodes.items()):
@@ -236,27 +274,17 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
         active_attackers = sorted(attackers.get(node_id, set()))
         survived = [att for att in active_attackers if labels[att] == "OUT"]
         unopposed = not active_attackers
-        # Graph labels are only structural: evidence is not checked by the graph.
+        # Only flag evidence gaps material to a structural win. If any
+        # independently evidenced defense chain already defeats an objection,
+        # weak *redundant* rebuttals do not make the claim REVIEW_REQUIRED.
         unsupported_defenders: list[dict[str, str]] = []
-        # Follow nested OUT -> IN defense chains, not just the first rebuttal.
-        pending = [(attacker, attacker) for attacker in survived]
-        seen: set[tuple[str, str]] = set()
-        while pending:
-            defeated_node, root_attacker = pending.pop()
-            if (defeated_node, root_attacker) in seen:
-                continue
-            seen.add((defeated_node, root_attacker))
-            for defender in sorted(attackers.get(defeated_node, set())):
-                if labels[defender] != "IN":
-                    continue
-                if not verified_sources(defender):
-                    unsupported_defenders.append({
-                        "claim": node_id, "attacker": root_attacker,
-                        "defender": defender
-                    })
-                for counterattack in sorted(attackers.get(defender, set())):
-                    if labels[counterattack] == "OUT":
-                        pending.append((counterattack, root_attacker))
+        for root_attacker in survived:
+            missing = missing_defender_for(root_attacker, frozenset())
+            if missing is not None:
+                unsupported_defenders.append({
+                    "claim": node_id, "attacker": root_attacker,
+                    "defender": missing
+                })
         defense_evidence_gaps.extend(unsupported_defenders)
         review_reasons: list[str] = []
         if labels[node_id] != "IN":
