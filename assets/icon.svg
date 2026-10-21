@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Ipcha Mistabra</title>
+  <desc id="desc">A symmetric pair of opposing arrows enclosing a central evidence diamond</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#193A50"/><stop offset="1" stop-color="#326A77"/></linearGradient></defs>
+  <rect width="160" height="160" rx="36" fill="url(#g)"/>
+  <path d="M34 56h71l-15-15m15 15-15 15" fill="none" stroke="#E9F3F1" stroke-linecap="round" stroke-linejoin="round" stroke-width="9"/>
+  <path d="M126 104H55l15-15m-15 15 15 15" fill="none" stroke="#E9F3F1" stroke-linecap="round" stroke-linejoin="round" stroke-width="9"/>
+  <path d="m80 64 16 16-16 16-16-16Z" fill="#C9D89B" stroke="#193A50" stroke-width="4"/>
+</svg>

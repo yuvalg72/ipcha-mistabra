@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "thesis": "A fictional organization should consolidate all VPN egress into a single hub without reducing availability.",
+  "nodes": [
+    {"id": "claim", "kind": "claim", "text": "Consolidation will simplify operations without reducing availability."},
+    {"id": "independence", "kind": "assumption", "text": "The new hub has truly independent upstream and recovery paths."},
+    {"id": "cost-estimate", "kind": "evidence", "text": "Modeled management savings; not independently confirmed.", "verification": "unverified", "provenance": "Fictional example inputs"},
+    {"id": "shared-failure", "kind": "objection", "text": "The single hub may concentrate the failure domains currently separated.", "gate": "admitted", "rationale": "Common egress and management dependencies could break multiple branches together; topology evidence is absent.", "risk": {"load": "high", "credibility": "medium", "cost": "high"}},
+    {"id": "redundancy-plan", "kind": "mitigation", "text": "Add redundant Internet circuits in a later project.", "gate": "admitted", "rationale": "Additional circuits might provide underlay diversity, pending a complete dependency audit.", "implementation": "planned"}
+  ],
+  "edges": [
+    {"source": "claim", "target": "independence", "kind": "depends_on"},
+    {"source": "cost-estimate", "target": "claim", "kind": "supports"},
+    {"source": "shared-failure", "target": "claim", "kind": "attacks", "strength": "serious"},
+    {"source": "redundancy-plan", "target": "shared-failure", "kind": "attacks", "strength": "decisive"}
+  ]
+}

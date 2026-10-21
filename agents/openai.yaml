@@ -1,0 +1,14 @@
+interface:
+  display_name: Ipcha Mistabra
+  short_description: Evidence-first devil's advocate and contrarian decision review
+  icon_small: ./assets/icon.svg
+  icon_large: ./assets/icon.svg
+  brand_color: '#193A50'
+  default_prompt: Use $ipcha-mistabra to challenge the strongest version of this decision, reject weak objections, and produce a falsifiable verdict.
+policy:
+  products:
+    - chatgpt
+    - codex
+    - api
+    - atlas
+  allow_implicit_invocation: true

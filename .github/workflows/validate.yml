@@ -1,0 +1,40 @@
+name: Validate Ipcha Mistabra Skill
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skill-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Skill structure and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate interface, README and local links
+        run: python3 scripts/validate_skill.py
+      - name: Python syntax
+        run: |
+          python3 -B - <<'PYCODE'
+          import ast
+          from pathlib import Path
+          for folder in ('scripts', 'tests'):
+              for file in Path(folder).rglob('*.py'):
+                  ast.parse(file.read_text(encoding='utf-8'), filename=str(file))
+          PYCODE
+      - name: Regression suite
+        run: python3 -B -m unittest discover -s tests -v
+      - name: Validate example argument graph
+        run: python3 -B scripts/argument_graph.py validate examples/architecture-review.json
