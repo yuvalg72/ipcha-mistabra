@@ -238,12 +238,25 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
         unopposed = not active_attackers
         # Graph labels are only structural: evidence is not checked by the graph.
         unsupported_defenders: list[dict[str, str]] = []
-        for attacker in survived:
-            for defender in sorted(attackers.get(attacker, set())):
-                if labels[defender] == "IN" and not verified_sources(defender):
+        # Follow nested OUT -> IN defense chains, not just the first rebuttal.
+        pending = [(attacker, attacker) for attacker in survived]
+        seen: set[tuple[str, str]] = set()
+        while pending:
+            defeated_node, root_attacker = pending.pop()
+            if (defeated_node, root_attacker) in seen:
+                continue
+            seen.add((defeated_node, root_attacker))
+            for defender in sorted(attackers.get(defeated_node, set())):
+                if labels[defender] != "IN":
+                    continue
+                if not verified_sources(defender):
                     unsupported_defenders.append({
-                        "claim": node_id, "attacker": attacker, "defender": defender
+                        "claim": node_id, "attacker": root_attacker,
+                        "defender": defender
                     })
+                for counterattack in sorted(attackers.get(defender, set())):
+                    if labels[counterattack] == "OUT":
+                        pending.append((counterattack, root_attacker))
         defense_evidence_gaps.extend(unsupported_defenders)
         review_reasons: list[str] = []
         if labels[node_id] != "IN":
