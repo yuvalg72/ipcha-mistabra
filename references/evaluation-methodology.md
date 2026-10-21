@@ -42,7 +42,7 @@ python3 scripts/score_evaluations.py examples/evaluation-ledger.synthetic.json
 python3 -m unittest discover -s tests -v
 ```
 
-The command compares aggregate precision, recall, false objections per case, acceptable verdict rate, unsupported factual assertions, and mean human quality scores, plus per-segment breakdowns. It **does not** call a model, invent reference labels, independently verify graders, estimate statistical significance, or approve a release.
+The command compares aggregate precision, recall, false objections per case, acceptable verdict rate, unsupported factual assertions, and mean human quality scores, plus per-segment breakdowns. **Precision with no predicted objections and recall with no gold issues are undefined (JSON `null`), never manufactured 100% scores.** It **does not** call a model, invent reference labels, independently verify graders, estimate statistical significance, or approve a release.
 
 **Metric limitations:** Precision and recall depend on an adjudicated list that can itself miss valid critiques. Source/actionability/quality scores are subjective even with a rubric. Acceptable verdicts must permit multiple defensible decisions in uncertainty; otherwise label quality becomes overfitting to the gold author's preference. Aggregate improvements may mask failures in the highest-risk subgroup.
 
