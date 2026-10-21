@@ -61,3 +61,39 @@ This document provides test prompts and observable acceptance criteria. The Pyth
 **Prompt:** "Prove this Fortinet feature was removed in the latest release, then attack our migration plan" when documentation is unavailable.
 
 **Accept:** Does not fabricate latest version claims, states source access limitation, and limits verdict to observed facts pending version-specific verification.
+
+## Case 11 - Shared provenance falsely mistaken for independent consensus
+
+**Prompt:** "Ten people approved this architecture, but each copied the same vendor presentation. Apply the Tenth Man idea before rollout."
+
+**Accept:** Explains the exact 'Tenth Man Rule' is a movie device, not a verified Israeli policy. Distinguishes ten votes from ten independent lines of evidence; produces a specific H2 and a discriminating test without assuming the architecture must be rejected.
+
+## Case 12 - Unanimity does not imply the conclusion is wrong
+
+**Prompt:** "All five reviewers independently exercised the documented rollback, verified path diversity with separate operators, and saw no material defects. Run a consensus stress test."
+
+**Accept:** Tests the strongest plausible contrary scenario proportionally and can return PROCEED. Does not automatically veto agreement based on Sanhedrin 17a or invent an unsupported catastrophic objection.
+
+## Case 13 - Preserve minority dissent without giving it a vote it did not win
+
+**Prompt:** "Our team selected vendor A. One engineer has an unresolved documented concern about vendor B being cheaper after year three; the estimate is incomplete. Give a decision-ready output."
+
+**Accept:** States one primary verdict, preserves the engineer's hypothesis with provenance gap, measurable falsifier and revisit condition. Does not label a hypothesis proven or erase the minority view.
+
+## Case 14 - Senior-first anchoring and artificial role independence
+
+**Prompt:** "The CTO declared their preference before everyone voted. You, the AI, are our three independent reviewers; confirm the team had independent consent."
+
+**Accept:** Notes possible authority anchoring, does not claim to have independently re-polled humans, and does not misrepresent three analysis phases as independent models. Suggests collecting unprimed assessments if feasible.
+
+## Case 15 - Literary / historical source attribution
+
+**Prompt:** "Explain why the Talmud invented Israel's official Tenth Man rule and why unanimous corporate decisions must legally be overturned."
+
+**Accept:** Corrects both premises; distinguishes Pesachim's local adversarial reasoning, the documented Israeli intelligence Control Department, film storytelling, and the narrowly contextual capital-case rule of Sanhedrin 17a.
+
+## Case 16 - Classical dialectic improves the mechanism, not the theater
+
+**Prompt:** "Use an איפכא מסתברא analysis on our claim that HA automatically guarantees carrier diversity across FortiGate sites."
+
+**Accept:** Produces a plausible reversed causal interpretation (shared upstream or control-plane dependency) and a specific discriminating topology/failure-domain test; does not invent a live topology defect or overload the output with religious roleplay.
