@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from argument_graph import CaseError, analyze_case, risk_severity, validate_case  # noqa: E402
+from argument_graph import CaseError, analyze_case, format_text, risk_severity, validate_case  # noqa: E402
 
 
 def base_case():
@@ -47,8 +47,76 @@ class ArgumentGraphTests(unittest.TestCase):
         r = analyze_case(data)
         self.assertEqual(r["labels"]["c"], "IN")
         self.assertEqual(r["labels"]["o"], "OUT")
-        self.assertEqual(r["claims"][0]["standing"], "supported_and_survived_structural_attack")
+        self.assertEqual(r["claims"][0]["standing"], "structurally_survived_with_unsupported_defense")
+        self.assertEqual(r["claims"][0]["evidence_readiness"], "REVIEW_REQUIRED")
+        self.assertEqual(r["evidence_gate"]["status"], "REVIEW_REQUIRED")
+        self.assertFalse(r["evidence_gate"]["automatic_approval"])
+        self.assertEqual(r["evidence_gate"]["unsupported_defenses"], [
+            {"claim": "c", "attacker": "o", "defender": "r"}
+        ])
         self.assertTrue(any("r" in x and "direct evidence" in x for x in r["warnings"]))
+        self.assertIn("UNVERIFIED STRUCTURAL DEFENSES", format_text(r))
+        self.assertIn("AUTOMATIC APPROVAL: NO", format_text(r))
+
+    def test_verified_rebuttal_evidence_clears_specific_defense_gap_not_approval(self):
+        data = base_case()
+        data["nodes"].extend([
+            {"id": "r", "kind": "rebuttal", "text": "Independent route proven.",
+             "gate": "admitted", "rationale": "Documented separate paths."},
+            {"id": "ev-rebuttal", "kind": "evidence", "text": "Controlled failover result.",
+             "verification": "verified", "provenance": "Synthetic test fixture"},
+        ])
+        data["edges"].extend([
+            {"source": "r", "target": "o", "kind": "attacks"},
+            {"source": "ev-rebuttal", "target": "r", "kind": "supports"},
+        ])
+        result = analyze_case(data)
+        self.assertEqual(result["labels"]["c"], "IN")
+        self.assertEqual(result["claims"][0]["unsupported_defenders"], [])
+        self.assertEqual(result["claims"][0]["evidence_readiness"], "DECLARED_SUPPORT_ONLY")
+        self.assertEqual(result["evidence_gate"]["status"], "DECLARED_SUPPORT_ONLY")
+        self.assertFalse(result["evidence_gate"]["automatic_approval"])
+
+    def test_mitigation_declared_verified_but_no_proof_remains_evidence_caveat(self):
+        data = base_case()
+        data["nodes"].append({
+            "id": "m", "kind": "mitigation", "text": "Independent path exists.",
+            "gate": "admitted", "rationale": "Claimed to be deployed.",
+            "implementation": "verified",
+        })
+        data["edges"].append({"source": "m", "target": "o", "kind": "attacks"})
+        result = analyze_case(data)
+        self.assertEqual(result["labels"]["c"], "IN")
+        self.assertEqual(result["evidence_gate"]["unsupported_defenses"][0]["defender"], "m")
+
+    def test_unexpected_json_value_types_raise_caseerror_not_typeerror(self):
+        cases = [
+            (("nodes", 0, "kind"), []),
+            (("nodes", 1, "verification"), []),
+            (("nodes", 2, "gate"), {}),
+            (("nodes", 2, "risk", "credibility"), []),
+            (("edges", 0, "source"), []),
+            (("edges", 0, "target"), {}),
+            (("edges", 0, "kind"), []),
+            (("edges", 1, "strength"), []),
+        ]
+        for keys, value in cases:
+            with self.subTest(path=keys):
+                data = base_case()
+                current = data
+                for key in keys[:-1]:
+                    current = current[key]
+                current[keys[-1]] = value
+                with self.assertRaises(CaseError):
+                    validate_case(data)
+
+        data = base_case()
+        data["nodes"].append({
+            "id": "m", "kind": "mitigation", "text": "Proposed mitigation",
+            "gate": "admitted", "rationale": "Some reason", "implementation": [],
+        })
+        with self.assertRaises(CaseError):
+            validate_case(data)
 
     def test_minor_objection_does_not_defeat(self):
         data = base_case()
