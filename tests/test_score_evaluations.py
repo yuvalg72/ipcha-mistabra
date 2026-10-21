@@ -32,8 +32,9 @@ class EvaluationScorerTests(unittest.TestCase):
         one = copy.deepcopy(self.data)
         one["cases"] = [one["cases"][1]]
         r = score(one)
-        self.assertEqual(r["skill"]["material_issue_recall"], 1.0)
-        self.assertEqual(r["skill"]["material_issue_precision"], 1.0)
+        self.assertIsNone(r["skill"]["material_issue_recall"])
+        self.assertIsNone(r["skill"]["material_issue_precision"])
+        self.assertIsNone(r["skill_minus_baseline"]["material_issue_recall"])
 
     def test_malformed_record_fails_validation(self):
         bad_values = [
