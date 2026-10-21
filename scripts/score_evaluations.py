@@ -72,7 +72,7 @@ def validate(data: Any) -> list[dict[str, Any]]:
     return cases
 
 
-def summarize(cases: list[dict[str, Any]], run: str) -> dict[str, float | int]:
+def summarize(cases: list[dict[str, Any]], run: str) -> dict[str, float | int | None]:
     count, tp, fp, fn, correct = len(cases), 0, 0, 0, 0
     unsupported = source_fidelity = actionability = decision_quality = 0
     for item in cases:
@@ -89,8 +89,8 @@ def summarize(cases: list[dict[str, Any]], run: str) -> dict[str, float | int]:
         decision_quality += result["decision_quality"]
     return {
         "cases": count,
-        "material_issue_precision": round(tp / (tp + fp), 4) if tp + fp else 1.0,
-        "material_issue_recall": round(tp / (tp + fn), 4) if tp + fn else 1.0,
+        "material_issue_precision": round(tp / (tp + fp), 4) if tp + fp else None,
+        "material_issue_recall": round(tp / (tp + fn), 4) if tp + fn else None,
         "false_objections_per_case": round(fp / count, 4),
         "acceptable_verdict_rate": round(correct / count, 4),
         "unsupported_claims_per_case": round(unsupported / count, 4),
@@ -116,7 +116,9 @@ def score(data: Any) -> dict[str, Any]:
         "benchmark_proof": False,
         "baseline": baseline,
         "skill": skill,
-        "skill_minus_baseline": {key: round(skill[key] - baseline[key], 4) for key in keys},
+        "skill_minus_baseline": {key: round(skill[key] - baseline[key], 4)
+                                 if skill[key] is not None and baseline[key] is not None
+                                 else None for key in keys},
         "by_segment": by_segment,
         "caveats": [
             "Synthetic example scores are NOT evidence of improvement."
