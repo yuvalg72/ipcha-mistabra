@@ -44,6 +44,16 @@ Elevate to Deep if a major consequence or unverified decisive claim is evident; 
 3. Check whether the team is solving the wrong problem, inheriting a stale premise, or ignoring a simpler, reversible option.
 4. Check base rates, missing stakeholders, incentives, timing, opportunity cost, second-order effects, and asymmetric downside only where relevant.
 
+### Optional: Jewish dialectic and consensus stress test
+
+When **real group consensus, authority pressure, a credible minority view, or disputed historical provenance** materially affects a decision, consult [references/tradition-and-dissent.md](references/tradition-and-dissent.md). Its source-grounded modern adaptations draw from Talmudic `ipcha mistabra` (a reasoned reversed interpretation), respectful opposing arguments, preserved minority opinions, and junior-first deliberation. These are **inspirations for review methods**, not halakhic decision rules or a substitute for evidence.
+
+- **Convergent consensus:** Check whether agreement relies on **independent information** or a shared untested premise. Build a realistic competing H2 and try to falsify **both** sides. Complete unanimity is a stress-test trigger for important decisions, **not evidence consensus is false**.
+- **Authority bias:** Recommend collecting individual views before a senior decision owner frames the discussion when that matters. Never claim independent experts participated when only one model ran.
+- **Credible surviving dissent:** Preserve a brief **Minority Report** (alternative, strongest evidence, falsifier, revisit trigger), *without* creating a second verdict. Allow `PROCEED` when criticism fails the ordinary gate.
+- **Historical honesty:** The exact **"Tenth Man Rule"** is a `World War Z` film depiction, **not a verified Israeli intelligence staffing policy**. Israel's actual Control Department is separately documented. Do not present ancient judicial exceptions as universal rules against unanimity or as an algorithm for corporate voting.
+- **Proportionality:** This adds no mandatory stage or new output section in Quick mode; use it only when relevant to the case.
+
 ### 3. Find causal attack paths
 
 Run targeted Socratic and red-team probes, not a quota of generic complaints. For every candidate objection, record:

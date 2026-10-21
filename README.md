@@ -43,6 +43,7 @@ Do **not** invoke it automatically for ordinary code editing, formatting or fact
 | Falsifiability | States the next observation that could change the answer |
 | Auditable optional graph | IN / OUT / UNDECIDED structural statuses, not automated truth detection |
 | Hebrew and English | Answer in the language of the request; preserve technical tokens |
+| Dialectic and minority reports | Optional source-grounded consensus stress tests, independent input and traceable surviving dissent |
 
 ## Typical workflow
 
@@ -81,6 +82,14 @@ The role passes (Advocate, Adversary, Judge) are **analytical phases**, not a fa
 The default Standard review starts with a verdict and its controlling reason. It then presents the strongest case **for** and **against**, the most consequential assumptions, at most five substantive surviving findings, a genuine rejection log, a falsifier, and one to three prioritized next actions. Deep mode adds source verification when possible, scenarios, decision risk, and stop/rollback criteria. Quick mode favors a sub-200-word answer.
 
 For unverifiable load-bearing facts, the conclusion explicitly says `CONDITIONAL on ...`; no empty certainty or fabricated sources.
+
+## Origins: Jewish dialectic and Israeli intelligence critique
+
+**Ipcha Mistabra** (איפכא מסתברא) is an Aramaic/Talmudic move: the **opposite inference may be more plausible when its reasoning is examined**. In [Pesachim 28a](https://he.wikisource.org/wiki/ביאור:בבלי_פסחים_דף_כח), a counterargument supplies a different mechanism and is tested against further sources. Other classical sources motivate complementary modern review practices: presenting the rival's argument fairly ([Eruvin 13b](https://mechon-mamre.org/b/l/l2201.htm)), preserving a minority view for later reconsideration ([Mishnah Eduyot 1:5](https://mechon-mamre.org/b/h/h47.htm)), and allowing less-senior judges to speak first in a **specific** high-stakes judicial context ([Mishnah Sanhedrin 4:2](https://he.wikisource.org/wiki/משנה_סנהדרין_ד_ב)).
+
+Israel's military intelligence [Control Department](https://www.idf.il/אתרי-יחידות/אגף-המודיעין/כל-הכתבות/2017/איפכר-מסתברא-יחידת-הבקרה-פורים-אמן/) offers a documented modern institutional analogy: it challenges prevailing assessments and examines alternatives. The exact **"Tenth Man Rule"**, popularized by the 2013 film *World War Z*, should be treated as a **fictional illustrative device**, not a verified official Israeli intelligence staffing formula.
+
+The Skill optionally applies these ideas as a **Consensus Stress Test** and an **evidence-linked Minority Report**, without overriding normal PROCEED / REVISE / RETHINK / STOP adjudication, manufacturing dissent, or claiming that rabbinic court rules govern business decisions. See the [source crosswalk, historical caveats and decision loop](references/tradition-and-dissent.md).
 
 ## Installation
 
@@ -130,6 +139,9 @@ The GitHub Actions workflow runs structural validation, syntax checks, regressio
 
 ## Example prompts
 
+- `@ipcha-mistabra Stress-test our committee's unanimous decision. Check shared evidence, build the strongest real minority hypothesis, and retain a falsifiable minority report if needed.`
+- `@ipcha-mistabra Apply a source-grounded Ipcha Mistabra / Sugya review in Hebrew. Clearly distinguish Talmudic material from modern adaptation.`
+
 - `@ipcha-mistabra Challenge our decision to consolidate all branch VPN egress into one hub. Deep mode; prioritize shared failure domains, rollback and evidence gaps.`
 - `@ipcha-mistabra Play devil's advocate on our supplier selection. Find the load-bearing commercial assumptions and a cheaper reversible alternative.`
 - `@ipcha-mistabra Run a Quick pass: we have a reversible rollout plan with successful tests. Is anything material missing?`
@@ -145,6 +157,7 @@ There are no other local Skills in this dedicated repository. For multi-perspect
 | Path | Purpose |
 |---|---|
 | [SKILL.md](SKILL.md) | Authoritative invocation, workflow, refusal and output rules |
+| [references/tradition-and-dissent.md](references/tradition-and-dissent.md) | Primary source crosswalk, consensus stress test, minority reporting, and fictional Tenth Man caveat |
 | [agents/openai.yaml](agents/openai.yaml) | ChatGPT UI metadata and invocation defaults |
 | [assets/icon.svg](assets/icon.svg) | Original visual identity |
 | [references/](references/analysis-protocol.md) | Modular analysis, evidence, gate, output, appeal and graph guidance |
