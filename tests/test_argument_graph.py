@@ -78,6 +78,80 @@ class ArgumentGraphTests(unittest.TestCase):
         self.assertEqual(result["evidence_gate"]["status"], "DECLARED_SUPPORT_ONLY")
         self.assertFalse(result["evidence_gate"]["automatic_approval"])
 
+    def test_redundant_unsupported_rebuttal_does_not_block_evidenced_win(self):
+        # Codex PR #2: one evidenced IN rebuttal suffices; an independent
+        # unsupported IN rebuttal is redundant, not a necessary evidence gap.
+        data = base_case()
+        data["nodes"].extend([
+            {"id": "supported", "kind": "rebuttal",
+             "text": "Path diversity verified in failover.",
+             "gate": "admitted", "rationale": "Passes controlled failover."},
+            {"id": "unsupported", "kind": "rebuttal",
+             "text": "Supplier said paths are independent.",
+             "gate": "admitted", "rationale": "Vendor assertion only."},
+            {"id": "tested", "kind": "evidence",
+             "text": "Independent failover fixture.",
+             "verification": "verified", "provenance": "Synthetic fixture"},
+        ])
+        data["edges"].extend([
+            {"source": "supported", "target": "o", "kind": "attacks"},
+            {"source": "unsupported", "target": "o", "kind": "attacks"},
+            {"source": "tested", "target": "supported", "kind": "supports"},
+        ])
+        result = analyze_case(data)
+        self.assertEqual(result["labels"]["c"], "IN")
+        self.assertEqual(result["labels"]["o"], "OUT")
+        self.assertEqual(result["claims"][0]["unsupported_defenders"], [])
+        self.assertEqual(result["claims"][0]["standing"], "supported_and_survived_structural_attack")
+        self.assertEqual(result["evidence_gate"]["status"], "DECLARED_SUPPORT_ONLY")
+        self.assertFalse(result["evidence_gate"]["automatic_approval"])
+
+    def test_all_rebuttals_unsupported_still_requires_evidence_review(self):
+        data = base_case()
+        for ident in ("r1", "r2"):
+            data["nodes"].append({
+                "id": ident, "kind": "rebuttal", "text": "Unverified claim " + ident,
+                "gate": "admitted", "rationale": "No supporting evidence",
+            })
+            data["edges"].append({"source": ident, "target": "o", "kind": "attacks"})
+        result = analyze_case(data)
+        self.assertEqual(result["labels"]["c"], "IN")
+        self.assertEqual(result["claims"][0]["evidence_readiness"], "REVIEW_REQUIRED")
+        self.assertEqual(len(result["claims"][0]["unsupported_defenders"]), 1)
+        self.assertIn(result["claims"][0]["unsupported_defenders"][0]["defender"],
+                      {"r1", "r2"})
+
+    def test_supported_alternative_ignores_unsupported_nested_counterattack(self):
+        # One branch has a verified direct rebuttal but depends on unsupported
+        # nested defense; a distinct verified rebuttal is genuinely sufficient.
+        data = base_case()
+        data["nodes"].extend([
+            {"id": "r1", "kind": "rebuttal", "text": "Defender requiring nested support",
+             "gate": "admitted", "rationale": "Plausible"},
+            {"id": "r2", "kind": "rebuttal", "text": "Independent supported defense",
+             "gate": "admitted", "rationale": "Proven independently"},
+            {"id": "o2", "kind": "objection", "text": "Counterargument to r1",
+             "gate": "admitted", "rationale": "Challenges first defense"},
+            {"id": "r3", "kind": "rebuttal", "text": "Unsupported defense of r1",
+             "gate": "admitted", "rationale": "Claimed only"},
+            {"id": "er1", "kind": "evidence", "text": "Claimed r1 verification",
+             "verification": "verified", "provenance": "Synthetic"},
+            {"id": "er2", "kind": "evidence", "text": "Independent r2 verification",
+             "verification": "verified", "provenance": "Synthetic"},
+        ])
+        data["edges"].extend([
+            {"source": "r1", "target": "o", "kind": "attacks"},
+            {"source": "r2", "target": "o", "kind": "attacks"},
+            {"source": "o2", "target": "r1", "kind": "attacks"},
+            {"source": "r3", "target": "o2", "kind": "attacks"},
+            {"source": "er1", "target": "r1", "kind": "supports"},
+            {"source": "er2", "target": "r2", "kind": "supports"},
+        ])
+        result = analyze_case(data)
+        self.assertEqual(result["labels"]["c"], "IN")
+        self.assertEqual(result["claims"][0]["unsupported_defenders"], [])
+        self.assertEqual(result["evidence_gate"]["status"], "DECLARED_SUPPORT_ONLY")
+
     def test_mitigation_declared_verified_but_no_proof_remains_evidence_caveat(self):
         data = base_case()
         data["nodes"].append({
