@@ -5,6 +5,7 @@ import copy
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -117,6 +118,46 @@ class ArgumentGraphTests(unittest.TestCase):
         })
         with self.assertRaises(CaseError):
             validate_case(data)
+
+    def test_nested_rebuttal_chain_reports_unsupported_final_defender(self):
+        data = base_case()
+        data["nodes"].extend([
+            {"id": "r", "kind": "rebuttal", "text": "Route diversity proven.",
+             "gate": "admitted", "rationale": "Test evidence."},
+            {"id": "er", "kind": "evidence", "text": "Independent routing test.",
+             "verification": "verified", "provenance": "Synthetic fixture"},
+            {"id": "o2", "kind": "objection", "text": "Test independence challenged.",
+             "gate": "admitted", "rationale": "Provider path might overlap."},
+            {"id": "r2", "kind": "rebuttal", "text": "Provider path is distinct.",
+             "gate": "admitted", "rationale": "Asserted, not verified."},
+        ])
+        data["edges"].extend([
+            {"source": "r", "target": "o", "kind": "attacks"},
+            {"source": "er", "target": "r", "kind": "supports"},
+            {"source": "o2", "target": "r", "kind": "attacks"},
+            {"source": "r2", "target": "o2", "kind": "attacks"},
+        ])
+        report = analyze_case(data)
+        self.assertEqual(report["labels"]["c"], "IN")
+        self.assertEqual(report["claims"][0]["evidence_readiness"], "REVIEW_REQUIRED")
+        self.assertEqual(report["evidence_gate"]["unsupported_defenses"], [
+            {"claim": "c", "attacker": "o", "defender": "r2"}
+        ])
+
+    def test_malformed_json_cli_returns_clean_validation_error(self):
+        data = base_case()
+        data["edges"][0]["source"] = []
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "bad.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/argument_graph.py"),
+                 "validate", str(path)],
+                capture_output=True, text=True, check=False
+            )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("ERROR:", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_minor_objection_does_not_defeat(self):
         data = base_case()
