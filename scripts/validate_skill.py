@@ -39,7 +39,7 @@ def validate(root: Path = ROOT) -> list[str]:
             errors.append("Frontmatter must contain exactly name and description")
         if f"name: {root.name}\n" not in fm.group(0):
             errors.append("Skill slug mismatches directory name")
-        if len(fm.group(1)) < 120 or "Use when" not in fm.group(1):
+        if len(fm.group(1)) < 120 or not re.search(r"\bUse (?:when|to)\b", fm.group(1)):
             errors.append("Description lacks clear purpose or invocation conditions")
     if "display_name: Ipcha Mistabra" not in metadata:
         errors.append("Metadata lacks display name")
