@@ -88,7 +88,7 @@ Reject or downgrade failures. Record real candidates you rejected and why, but *
 
 Run a neutral judge pass after presenting the best proponent and adversary cases. An objection does not win by appearing last, sounding harsh, or outnumbering defenses. A counterargument must itself survive scrutiny. Note contradictions, dependencies, unsupported premises, unresolved cycles, and successful rebuttals.
 
-For complex cases, use [references/argument-graph.md](references/argument-graph.md) and optionally run `python3 scripts/argument_graph.py analyze <case.json>`. The tool labels structural attacks and support; it **does not verify facts or decide policy on its own**. If no code execution is available, apply the same reasoning in prose without pretending a script ran. Role labels are **review phases**, not separate independent models or agents unless those tools actually ran.
+For complex cases, use [references/argument-graph.md](references/argument-graph.md) and optionally run `python3 scripts/argument_graph.py analyze <case.json>`. The tool labels structural attacks and support; it **does not verify facts or decide policy on its own**. **Check its `evidence_gate` separately from IN/OUT/UNDECIDED: a rebuttal with no declared verified direct support may defeat an objection structurally, but that does not validate its facts. `REVIEW_REQUIRED` warrants targeted evidence review; `DECLARED_SUPPORT_ONLY` still does not authorize PROCEED. The tool never approves a decision.** If no code execution is available, apply the same reasoning in prose without pretending a script ran. Role labels are **review phases**, not separate independent models or agents unless those tools actually ran.
 
 ### 7. Decide, de-risk, and expose the falsifier
 
@@ -119,6 +119,10 @@ Avoid verbose intermediate roleplay, generic risk dumps, hollow confidence score
 ## Appeals and updated material
 
 When a prior review or revised proposal is available, follow [references/appeals-and-regressions.md](references/appeals-and-regressions.md). Classify old findings as **Fixed**, **Papered over**, **Unfixed**, or **Traded**; state what new evidence changes, why the verdict moves or holds, and acknowledge a missed flaw if discoverable from the original record. Do not silently erase inconvenient findings.
+
+## Measured effectiveness
+
+Do not claim this Skill makes decisions more accurate merely because unit tests, schema validation or CI pass. The [paired, blinded evaluation protocol](references/evaluation-methodology.md) provides human-adjudicated material-issue recall, objection false positives, source fidelity, actionability and decision-quality scoring; synthetic examples prove only scoring mechanics. Any efficacy claim requires controlled model runs and reported uncertainty, with scope and limitations.
 
 ## Safety and source boundaries
 

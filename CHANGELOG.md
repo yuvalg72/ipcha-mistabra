@@ -2,6 +2,11 @@
 
 ## Unreleased (initial source candidate)
 
+- Harden argument graph JSON validation to return controlled errors on malformed field types.
+- Add a separate, prominent evidence gate and trace unverified structural defenses; never authorize a decision from graph topology.
+- Add a source-independent human annotation scorer, synthetic example, regression tests and a blinded paired-model evaluation protocol.
+
+
 - Add source-grounded Jewish dialectic and Israeli intelligence critique references, with explicit distinction between documented practice and the fictional exact Tenth Man rule.
 - Add optional consensus stress testing, authority-debiasing and falsifiable minority reports without forcing dissent.
 - Add manual behavior acceptance scenarios for consensus provenance, minority retention and historical attribution.

@@ -21,7 +21,7 @@ Edges have `source`, `target`, `kind`:
 - `supports`: a source backs a target. Only a source of kind `evidence` with verification `verified` provides the tool's strongest *declared* direct support; even this is not independently fact-checked by the tool.
 - `depends_on`: from dependent claim to prerequisite claim or assumption. A prerequisite with no verified direct support is an unresolved dependency even if it faces no attacks.
 
-All referenced IDs must exist. The script rejects unknown types, duplicate IDs/edges, invalid attack sources, unsupported schema versions and malformed JSON. Text is data, never an instruction to run.
+All referenced IDs must exist. The script rejects unknown types (including unhashable JSON arrays/objects in enum or reference fields) as controlled `CaseError` validation failures, duplicate IDs/edges, invalid attack sources, unsupported schema versions and malformed JSON. Text is data, never an instruction to run.
 
 ## Grounded attack semantics
 
@@ -32,6 +32,12 @@ For eligible attacks, use a least fixpoint:
 - `UNDECIDED` when the graph cannot resolve the contest, including mutual live attacks.
 
 A defeated attacker stops defeating its target; a valid rebuttal can change the topology. Unattacked nodes are `IN` only *structurally*: this is **not** proof that they are true. An `IN` claim with no verified direct evidence is reported as unsupported. Dependencies without verified premises are reported separately. Planned or rejected attacks are ignored but recorded.
+
+## Evidence gate (independent of structural labels)
+
+The analyzer returns a top-level `evidence_gate` object in JSON and an **EVIDENCE GATE / AUTOMATIC APPROVAL: NO** banner in text. Its status is `REVIEW_REQUIRED` when a claim is structurally not accepted, has no direct declared verified support, has unresolved direct dependencies, or **survives only because an undefeated rebuttal/mitigation lacking direct declared verified support defeats an objection**. Otherwise it says `DECLARED_SUPPORT_ONLY`, never "approved".
+
+A claim's `unsupported_defenders` lists `{claim, attacker, defender}` for objections whose **every structurally winning defense chain lacks sufficient declared evidence**. Evidence sufficiency is assessed through a grounded, well-founded chain: one evidenced rebuttal can defeat an objection without relying on other unsupported rebuttals, while an otherwise evidenced rebuttal relying on an unsupported counter-counterargument still leaves a gap. This avoids false warnings for redundant weak defenders. The reported `attacker` is the original objection and `defender` identifies one relevant missing-evidence link; when multiple unsupported paths exist the output is an actionable representative, not an exhaustive list of every defect. `review_reasons` distinguishes cases. `evidence_gate.automatic_approval` is **always false**, because even `verification: verified` means only a human-declared check. It does not prove relevance, provenance accuracy, or operational safety. Logic-only rebuttals may be sound without empirical evidence, but require explicit human assessment before use as a decisive defense. The gate is a **review flag**, not a probability, factual verdict, or automatic release block.
 
 Structural labels can inform the judge. They **cannot** by themselves establish real-world truth, probability, severity or a PROCEED verdict. Never translate `IN` directly to "verified" or silently treat model-generated evidence as a source.
 

@@ -55,10 +55,10 @@ def validate_case(data: Any) -> dict[str, Any]:
         require(isinstance(node_id, str) and ID_PATTERN.fullmatch(node_id) is not None,
                 f"{place}.id must be lower-case kebab-case")
         require(node_id not in by_id, f"duplicate node id: {node_id}")
-        require(kind in KINDS, f"{place}.kind is not supported: {kind!r}")
+        require(isinstance(kind, str) and kind in KINDS, f"{place}.kind is not supported: {kind!r}")
         require(nonempty(node.get("text")), f"{place}.text must be non-empty")
         if kind == "evidence":
-            require(node.get("verification") in EVIDENCE_STATES,
+            require(isinstance(node.get("verification"), str) and node["verification"] in EVIDENCE_STATES,
                     f"{place}.verification must be one of {sorted(EVIDENCE_STATES)}")
             if node.get("verification") == "verified":
                 require(nonempty(node.get("provenance")),
@@ -66,7 +66,7 @@ def validate_case(data: Any) -> dict[str, Any]:
         elif "verification" in node:
             raise CaseError(f"{place}.verification belongs only on evidence nodes")
         if kind in ARGUMENT_KINDS:
-            require(node.get("gate") in GATES, f"{place}.gate must be admitted, rejected, or pending")
+            require(isinstance(node.get("gate"), str) and node["gate"] in GATES, f"{place}.gate must be admitted, rejected, or pending")
             if node["gate"] == "rejected":
                 require(nonempty(node.get("gate_reason")), f"{place}.gate_reason required for rejection")
             if node["gate"] == "admitted":
@@ -74,7 +74,7 @@ def validate_case(data: Any) -> dict[str, Any]:
         elif "gate" in node:
             raise CaseError(f"{place}.gate belongs only on argument nodes")
         if kind == "mitigation":
-            require(node.get("implementation") in IMPLEMENTATION,
+            require(isinstance(node.get("implementation"), str) and node["implementation"] in IMPLEMENTATION,
                     f"{place}.implementation must be verified or planned")
         elif "implementation" in node:
             raise CaseError(f"{place}.implementation belongs only on mitigations")
@@ -84,7 +84,8 @@ def validate_case(data: Any) -> dict[str, Any]:
             require(isinstance(risk, dict) and set(risk) == {"load", "credibility", "cost"},
                     f"{place}.risk must contain exactly load, credibility, cost")
             for axis, value in risk.items():
-                require(value in LEVELS, f"{place}.risk.{axis} must be low, medium, or high")
+                require(isinstance(value, str) and value in LEVELS,
+                        f"{place}.risk.{axis} must be low, medium, or high")
         by_id[node_id] = node
 
     seen: set[tuple[str, str, str]] = set()
@@ -92,9 +93,11 @@ def validate_case(data: Any) -> dict[str, Any]:
         place = f"edges[{index}]"
         require(isinstance(edge, dict), f"{place} must be an object")
         source, target, kind = edge.get("source"), edge.get("target"), edge.get("kind")
+        require(isinstance(source, str) and isinstance(target, str),
+                f"{place}.source and .target must be string node ids")
         require(source in by_id and target in by_id, f"{place} refers to an unknown node")
         require(source != target, f"{place} cannot link a node to itself")
-        require(kind in RELATIONS, f"{place}.kind is unsupported")
+        require(isinstance(kind, str) and kind in RELATIONS, f"{place}.kind is unsupported")
         edge_key = (source, target, kind)
         require(edge_key not in seen, f"duplicate edge {source} -> {target} ({kind})")
         seen.add(edge_key)
@@ -102,7 +105,8 @@ def validate_case(data: Any) -> dict[str, Any]:
         if kind == "attacks":
             require(by_id[source]["kind"] in ARGUMENT_KINDS,
                     f"{place} attacks must originate from an objection, rebuttal or mitigation")
-            require(edge.get("strength", "serious") in STRENGTH,
+            require(isinstance(edge.get("strength", "serious"), str) and
+                    edge.get("strength", "serious") in STRENGTH,
                     f"{place}.strength must be minor, serious or decisive")
         else:
             require("strength" not in edge, f"{place}.strength applies only to attacks")
@@ -221,7 +225,46 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
                       nodes[s]["kind"] == "evidence" and
                       nodes[s]["verification"] == "verified" and labels[s] == "IN")
 
+    # Grounded evidentiary justification is different from grounded graph IN.
+    # A structural win is evidence-supported when AT LEAST ONE defender has
+    # declared direct evidence AND its own attacked premises can be defended
+    # through similarly supported, well-founded chains.
+    evidenced_in: set[str] = set()
+    while True:
+        new_evidenced = {
+            node_id for node_id in accepted - evidenced_in
+            if nodes[node_id]["kind"] in ARGUMENT_KINDS
+            and verified_sources(node_id)
+            and all(any(defender in evidenced_in for defender in attackers[attacker])
+                    for attacker in attackers[node_id])
+        }
+        if not new_evidenced:
+            break
+        evidenced_in.update(new_evidenced)
+
+    def missing_defender_for(defeated_node: str, visited: frozenset[str]) -> str | None:
+        """Find one missing evidence link on a necessary counterattack path."""
+        defenders = sorted(d for d in attackers[defeated_node] if labels[d] == "IN")
+        if any(d in evidenced_in for d in defenders):
+            return None  # Supported alternative wins; ignore redundant weak paths.
+        for defender in defenders:
+            if not verified_sources(defender):
+                return defender
+        for defender in defenders:
+            if defender in visited:
+                continue
+            for counterattack in sorted(attackers[defender]):
+                if labels[counterattack] == "OUT":
+                    missing = missing_defender_for(
+                        counterattack, visited | {defender}
+                    )
+                    if missing is not None:
+                        return missing
+        # Defensive fallback: never silently certify a structurally IN path.
+        return defenders[0] if defenders else None
+
     claim_info = []
+    defense_evidence_gaps: list[dict[str, str]] = []
     for node_id, node in sorted(nodes.items()):
         if node["kind"] not in {"claim", "assumption", "alternative"}:
             continue
@@ -231,10 +274,33 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
         active_attackers = sorted(attackers.get(node_id, set()))
         survived = [att for att in active_attackers if labels[att] == "OUT"]
         unopposed = not active_attackers
+        # Only flag evidence gaps material to a structural win. If any
+        # independently evidenced defense chain already defeats an objection,
+        # weak *redundant* rebuttals do not make the claim REVIEW_REQUIRED.
+        unsupported_defenders: list[dict[str, str]] = []
+        for root_attacker in survived:
+            missing = missing_defender_for(root_attacker, frozenset())
+            if missing is not None:
+                unsupported_defenders.append({
+                    "claim": node_id, "attacker": root_attacker,
+                    "defender": missing
+                })
+        defense_evidence_gaps.extend(unsupported_defenders)
+        review_reasons: list[str] = []
+        if labels[node_id] != "IN":
+            review_reasons.append("structurally_not_accepted")
+        if not verified:
+            review_reasons.append("missing_declared_direct_evidence")
+        if missing_deps:
+            review_reasons.append("dependency_gap")
+        if unsupported_defenders:
+            review_reasons.append("unsupported_defense_defeated_objection")
         if labels[node_id] == "OUT":
             standing = "defeated_structurally"
         elif labels[node_id] == "UNDECIDED":
             standing = "unresolved_attack"
+        elif unsupported_defenders:
+            standing = "structurally_survived_with_unsupported_defense"
         elif not verified or missing_deps:
             standing = "unsupported_or_dependency_gap"
         elif unopposed:
@@ -247,6 +313,9 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
             "dependency_gaps": sorted(missing_deps),
             "serious_attackers": active_attackers,
             "defeated_attackers": survived,
+            "unsupported_defenders": unsupported_defenders,
+            "evidence_readiness": "REVIEW_REQUIRED" if review_reasons else "DECLARED_SUPPORT_ONLY",
+            "review_reasons": review_reasons,
         })
 
     gate_log = []
@@ -274,6 +343,12 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
         warnings.append("Admitted argument(s) without declared verified direct evidence: " +
                         ", ".join(unsupported_arguments) +
                         ". Valid logical objections may be evidence-independent; manually assess credibility before deciding.")
+    if defense_evidence_gaps:
+        warnings.append("BLOCKING EVIDENCE CAVEAT: structurally defeated objections rely on "
+                        "defenders without declared verified direct evidence. "
+                        "Do not treat these as evidenced rebuttals: " +
+                        ", ".join(f"{x['claim']} <- {x['attacker']} <- {x['defender']}"
+                                  for x in defense_evidence_gaps))
     cycles = dependency_cycles(nodes, data["edges"])
     if cycles:
         warnings.append("Circular dependencies require human review; structural IN does not establish circular premises.")
@@ -287,6 +362,18 @@ def analyze_case(data: dict[str, Any]) -> dict[str, Any]:
         "thesis": data["thesis"],
         "labels": labels,
         "claims": claim_info,
+        "evidence_gate": {
+            "status": "REVIEW_REQUIRED" if any(
+                item["review_reasons"] for item in claim_info
+            ) else "DECLARED_SUPPORT_ONLY",
+            "automatic_approval": False,
+            "review_required_claims": [item["id"] for item in claim_info
+                                      if item["review_reasons"]],
+            "unsupported_defenses": defense_evidence_gaps,
+            "disclaimer": ("Evidence verified in JSON is a reviewer assertion, not an "
+                           "independent source check. Graph status never determines the "
+                           "operational verdict."),
+        },
         "arguments": findings,
         "gate_log": gate_log,
         "ignored_attacks": ignored,
@@ -304,9 +391,21 @@ def format_text(report: dict[str, Any]) -> str:
     lines = ["STRUCTURAL ARGUMENT REVIEW (not a fact-check)",
              "Thesis: " + report["thesis"],
              "Nodes: {nodes}; edges: {edges}; IN: {in}; OUT: {out}; UNDECIDED: {undecided}; inactive: {inactive}".format(**report["counts"]),
+             "", "EVIDENCE GATE: " + report["evidence_gate"]["status"],
+             "AUTOMATIC APPROVAL: NO",
+             report["evidence_gate"]["disclaimer"],
+             "Review-required claims: " +
+             (", ".join(report["evidence_gate"]["review_required_claims"]) or "(none declared)"),
              "", "CLAIMS / ASSUMPTIONS"]
     for claim in report["claims"]:
         lines.append(f"- {claim['id']} [{claim['label']}]: {claim['standing']}")
+        if claim["review_reasons"]:
+            lines.append("    EVIDENCE REVIEW REQUIRED: " +
+                         ", ".join(claim["review_reasons"]))
+        if claim["unsupported_defenders"]:
+            lines.append("    UNVERIFIED STRUCTURAL DEFENSES: " +
+                         ", ".join(f"{x['defender']} defeated {x['attacker']}"
+                                   for x in claim["unsupported_defenders"]))
         if claim["dependency_gaps"]:
             lines.append("    unresolved prerequisites: " + ", ".join(claim["dependency_gaps"]))
         if claim["verified_direct_evidence"]:

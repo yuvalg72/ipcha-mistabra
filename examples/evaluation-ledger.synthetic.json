@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "dataset_kind": "synthetic_example",
+  "cases": [
+    {
+      "id": "vpn-hub",
+      "segment": "network-security",
+      "gold_issue_ids": [
+        "shared-underlay"
+      ],
+      "acceptable_verdicts": [
+        "REVISE",
+        "RETHINK"
+      ],
+      "baseline": {
+        "issue_ids": [],
+        "verdict": "PROCEED",
+        "unsupported_claims": 1,
+        "source_fidelity": 2,
+        "actionability": 2,
+        "decision_quality": 2
+      },
+      "skill": {
+        "issue_ids": [
+          "shared-underlay"
+        ],
+        "verdict": "REVISE",
+        "unsupported_claims": 0,
+        "source_fidelity": 4,
+        "actionability": 5,
+        "decision_quality": 4
+      }
+    },
+    {
+      "id": "tested-change",
+      "segment": "network-security",
+      "gold_issue_ids": [],
+      "acceptable_verdicts": [
+        "PROCEED"
+      ],
+      "baseline": {
+        "issue_ids": [
+          "generic-outage"
+        ],
+        "verdict": "REVISE",
+        "unsupported_claims": 0,
+        "source_fidelity": 4,
+        "actionability": 3,
+        "decision_quality": 3
+      },
+      "skill": {
+        "issue_ids": [],
+        "verdict": "PROCEED",
+        "unsupported_claims": 0,
+        "source_fidelity": 5,
+        "actionability": 4,
+        "decision_quality": 5
+      }
+    }
+  ]
+}

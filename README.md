@@ -42,6 +42,8 @@ Do **not** invoke it automatically for ordinary code editing, formatting or fact
 | Severity and verdict | PROCEED / REVISE / RETHINK / STOP, with CONDITIONAL on unresolved decisive facts |
 | Falsifiability | States the next observation that could change the answer |
 | Auditable optional graph | IN / OUT / UNDECIDED structural statuses, not automated truth detection |
+| Evidence gate | Review-required flag when structural wins rely on unsupported rebuttals; never grants approval |
+| Evaluation quality | Offline blinded paired-evaluation rubric and human-annotation scorer, with no invented benchmark results |
 | Hebrew and English | Answer in the language of the request; preserve technical tokens |
 | Dialectic and minority reports | Optional source-grounded consensus stress tests, independent input and traceable surviving dissent |
 
@@ -90,6 +92,12 @@ For unverifiable load-bearing facts, the conclusion explicitly says `CONDITIONAL
 Israel's military intelligence [Control Department](https://www.idf.il/אתרי-יחידות/אגף-המודיעין/כל-הכתבות/2017/איפכר-מסתברא-יחידת-הבקרה-פורים-אמן/) offers a documented modern institutional analogy: it challenges prevailing assessments and examines alternatives. The exact **"Tenth Man Rule"**, popularized by the 2013 film *World War Z*, should be treated as a **fictional illustrative device**, not a verified official Israeli intelligence staffing formula.
 
 The Skill optionally applies these ideas as a **Consensus Stress Test** and an **evidence-linked Minority Report**, without overriding normal PROCEED / REVISE / RETHINK / STOP adjudication, manufacturing dissent, or claiming that rabbinic court rules govern business decisions. See the [source crosswalk, historical caveats and decision loop](references/tradition-and-dissent.md).
+
+## Verification versus decision quality
+
+The optional graph now exposes a separate **evidence gate**. A claim can be structurally `IN` because an admitted rebuttal defeated its critic, while the rebuttal has **no declared verified direct evidence**. Such cases are prominently flagged in the text report and machine-readable JSON. The analyzer **never** issues automatic approval, and JSON `verified` remains a human-declared assertion rather than independently checked proof. Malformed JSON field types fail through controlled validation errors.
+
+**Repository correctness is not model improvement.** The offline [paired-evaluation protocol](references/evaluation-methodology.md) and [annotation scorer](scripts/score_evaluations.py) separate structural CI coverage from evidence sufficiency and actual decision quality. The [synthetic ledger](examples/evaluation-ledger.synthetic.json) is a contract example only, **not** evaluation results.
 
 ## Installation
 
