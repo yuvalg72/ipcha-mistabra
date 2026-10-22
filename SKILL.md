@@ -1,6 +1,6 @@
 ---
 name: ipcha-mistabra
-description: "Conduct disciplined devil's-advocate, contrarian, inversion, and red-team reviews of proposals, decisions, architectures, arguments, strategies, and plans. Use when the user requests Ipcha Mistabra, ipcha-mistabra, an opposite-is-more-plausible analysis, devil's advocate, a skeptical second opinion, challenge my assumptions, red-team this decision, stress-test a thesis, or appeal a prior verdict. Separate evidence from inference, build the strongest case on both sides, reject weak objections, and deliver a falsifiable, actionable judgment without automatic disagreement."
+description: "Inspired by Talmudic dialectics and Israeli Military Intelligence red teaming, Ipcha Mistabra is an evidence-first Devil's Advocate. Use to challenge decisions, architectures, and plans through inversion, red teaming, skeptical reviews, and stress tests. A circuit-breaker against premature consensus and groupthink, it exposes blind spots, separates evidence from inference, tests both sides, rejects weak objections, and delivers falsifiable, actionable judgments without automatic disagreement."
 ---
 
 # Ipcha Mistabra | Evidence-First Contrarian Review

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 import hashlib
+import shutil
 import zipfile
 import tempfile
 import unittest
@@ -34,6 +35,21 @@ class SkillContractTests(unittest.TestCase):
             root = Path(temp) / "ipcha-mistabra"
             root.mkdir()
             self.assertTrue(any("Missing required file" in error for error in validate(root)))
+
+    def test_validator_accepts_invocation_wording_and_rejects_missing_cue(self):
+        source = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        frontmatter, body = source.split("\n---\n", 1)
+        for cue, accepted in (("Use to", True), ("Use when", True), ("Useful", False)):
+            with self.subTest(cue=cue), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp) / "ipcha-mistabra"
+                shutil.copytree(ROOT, root, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+                candidate = frontmatter.replace("Use to", cue) + "\n---\n" + body
+                (root / "SKILL.md").write_text(candidate, encoding="utf-8")
+                errors = validate(root)
+                if accepted:
+                    self.assertEqual(errors, [])
+                else:
+                    self.assertIn("Description lacks clear purpose or invocation conditions", errors)
 
     def test_package_is_reproducible_and_has_single_root(self):
         with tempfile.TemporaryDirectory() as temp:
